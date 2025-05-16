@@ -38,7 +38,7 @@ public class AdminController {
     @Autowired
     public AdminController(
             samuraitravelService samuraitravelService,
-            BookingService bookingService,
+            BookingService bookingService,あ
             UserService userService) {
         this.samuraitravelService = samuraitravelService;
         this.bookingService = bookingService;
