@@ -8,8 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -21,8 +19,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "houses")
+public class House {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,8 +29,17 @@ public class User {
     @Column(nullable = false)
     private String name;
     
+    @Column(name = "image_name")
+    private String imageName;
+    
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
+    
     @Column(nullable = false)
-    private String furigana;
+    private Integer price;
+    
+    @Column(nullable = false)
+    private Integer capacity;
     
     @Column(name = "postal_code")
     private String postalCode;
@@ -42,19 +49,6 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
     
-    @Column(nullable = false, unique = true)
-    private String email;
-    
-    @Column(nullable = false)
-    private String password;
-    
-    @ManyToOne
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
-    
-    @Column(nullable = false)
-    private boolean enabled;
-    
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
     private List<Reservation> reservations;
 }

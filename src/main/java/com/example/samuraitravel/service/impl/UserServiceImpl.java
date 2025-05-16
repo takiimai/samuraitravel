@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,37 +36,55 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new UsernameNotFoundException("ユーザーが見つかりません: " + email));
+
+		return new org.springframework.security.core.userdetails.User(
+				user.getEmail(),
+				user.getPassword(),
+				user.isEnabled(),
+				true,
+				true,
+				true,
+				Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName())));
+	}
+
+	@Override
 	@Transactional
-	public User registerNewUser(UserDto userDto) {
+	public User registerUser(UserDto userDto) {
 		if (userRepository.existsByEmail(userDto.getEmail())) {
-			throw new RuntimeException("Email already in use");
+			throw new RuntimeException("このメールアドレスは既に使用されています");
 		}
 
 		User user = new User();
+		user.setName(userDto.getName());
+		user.setFurigana(userDto.getFurigana());
+		user.setPostalCode(userDto.getPostalCode());
+		user.setAddress(userDto.getAddress());
+		user.setPhoneNumber(userDto.getPhoneNumber());
 		user.setEmail(userDto.getEmail());
 		user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-		user.setFirstName(userDto.getFirstName());
-		user.setLastName(userDto.getLastName());
-		user.setPhoneNumber(userDto.getPhoneNumber());
 
-		// デフォルトでユーザーロールを設定
-		Role userRole = roleRepository.findByName("ROLE_USER")
-				.orElseThrow(() -> new RuntimeException("Default role not found"));
-		user.setRoles(Collections.singleton(userRole));
+		// デフォルトでは一般ユーザー権限を付与
+		Role userRole = roleRepository.findByName("ROLE_GENERAL")
+				.orElseThrow(() -> new RuntimeException("デフォルトロールが見つかりません"));
+		user.setRole(userRole);
+		user.setEnabled(true);
 
 		return userRepository.save(user);
 	}
 
 	@Override
-	public User findByEmail(String email) {
-		return userRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+	public User findById(Long id) {
+		return userRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("ユーザーが見つかりません: " + id));
 	}
 
 	@Override
-	public User findById(Long id) {
-		return userRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+	public User findByEmail(String email) {
+		return userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("ユーザーが見つかりません: " + email));
 	}
 
 	@Override
@@ -76,14 +97,33 @@ public class UserServiceImpl implements UserService {
 	public User updateUser(UserDto userDto) {
 		User user = findById(userDto.getId());
 
-		user.setFirstName(userDto.getFirstName());
-		user.setLastName(userDto.getLastName());
+		user.setName(userDto.getName());
+		user.setFurigana(userDto.getFurigana());
+		user.setPostalCode(userDto.getPostalCode());
+		user.setAddress(userDto.getAddress());
 		user.setPhoneNumber(userDto.getPhoneNumber());
 
-		// パスワードが提供されている場合のみ更新
+		// メールアドレスが変更されていて、かつ既に使用されている場合はエラー
+		if (!user.getEmail().equals(userDto.getEmail()) &&
+				userRepository.existsByEmail(userDto.getEmail())) {
+			throw new RuntimeException("このメールアドレスは既に使用されています");
+		}
+
+		user.setEmail(userDto.getEmail());
+
+		// パスワードが入力されている場合のみ更新
 		if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
 			user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 		}
+
+		// ロールが指定されている場合は更新
+		if (userDto.getRoleId() != null) {
+			Role role = roleRepository.findById(userDto.getRoleId())
+					.orElseThrow(() -> new RuntimeException("指定されたロールが見つかりません"));
+			user.setRole(role);
+		}
+
+		user.setEnabled(userDto.isEnabled());
 
 		return userRepository.save(user);
 	}

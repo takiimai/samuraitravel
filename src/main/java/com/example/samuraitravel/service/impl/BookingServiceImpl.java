@@ -55,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> findBysamuraitravelId(Long samuraitravelId) {
-        return bookingRepository.findByRoomsamuraitravelId(samuraitravelId);
+        return bookingRepository.findByRoomId(samuraitravelId);
     }
 
     @Override

@@ -11,7 +11,7 @@ import com.example.samuraitravel.model.Booking;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserId(Long userId);
     
-    List<Booking> findByRoomsamuraitravelId(Long samuraitravelId);
+    List<Booking> findByRoomId(Long samuraitravelId);
     
     List<Booking> findByRoomIdAndStatusIn(Long roomId, List<Booking.BookingStatus> statuses);
     

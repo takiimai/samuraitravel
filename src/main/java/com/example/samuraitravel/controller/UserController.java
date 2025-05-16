@@ -34,8 +34,7 @@ public class UserController {
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());
         userDto.setEmail(user.getEmail());
-        userDto.setFirstName(user.getFirstName());
-        userDto.setLastName(user.getLastName());
+        userDto.setName(user.getName());
         userDto.setPhoneNumber(user.getPhoneNumber());
         
         model.addAttribute("user", userDto);

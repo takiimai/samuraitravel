@@ -1,7 +1,7 @@
 package com.example.samuraitravel.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,19 +11,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
+    
     private Long id;
     
-    @NotEmpty(message = "Email is required")
-    @Email(message = "Please provide a valid email address")
+    @NotBlank(message = "名前は必須です")
+    private String name;
+    
+    @NotBlank(message = "ふりがなは必須です")
+    private String furigana;
+    
+    private String postalCode;
+    
+    private String address;
+    
+    private String phoneNumber;
+    
+    @NotBlank(message = "メールアドレスは必須です")
+    @Email(message = "有効なメールアドレスを入力してください")
     private String email;
     
     private String password;
     
-    @NotEmpty(message = "First name is required")
-    private String firstName;
+    private Long roleId;
     
-    @NotEmpty(message = "Last name is required")
-    private String lastName;
-    
-    private String phoneNumber;
+    private boolean enabled = true;
 }

@@ -44,7 +44,7 @@ public class AuthController {
             return "auth/register";
         }
 
-        userService.registerNewUser(userDto);
+        userService.registerUser(userDto);
         return "redirect:/auth/login?registered";
     }
 
