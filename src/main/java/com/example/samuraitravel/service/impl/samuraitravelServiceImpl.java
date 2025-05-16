@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.samuraitravel.dto.SearchDto;
 import com.example.samuraitravel.dto.samuraitravelDto;
 import com.example.samuraitravel.model.Room;
+import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.model.samuraitravel;
 import com.example.samuraitravel.repository.RoomRepository;
 import com.example.samuraitravel.repository.UserRepository;

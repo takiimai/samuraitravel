@@ -2,6 +2,7 @@ package com.example.samuraitravel.controller;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import jakarta.validation.Valid;
 
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.samuraitravel.dto.BookingDto;
 import com.example.samuraitravel.model.Booking;
 import com.example.samuraitravel.model.Room;
+import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.service.BookingService;
 import com.example.samuraitravel.service.samuraitravelService;
 
@@ -51,7 +53,7 @@ public class BookingController {
 		Room room = samuraitravelService.findRoomById(roomId);
 
 		if (!bookingService.isRoomAvailable(roomId, checkInDate, checkOutDate)) {
-			return "redirect:/samuraitravels/" + room.getsamuraitravel().getId() + "?error=roomNotAvailable";
+			return "redirect:/samuraitravels/" + room.getSamuraitravel().getId() + "?error=roomNotAvailable";
 		}
 
 		BookingDto bookingDto = new BookingDto();
@@ -63,7 +65,7 @@ public class BookingController {
 		long nights = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
 
 		model.addAttribute("room", room);
-		model.addAttribute("samuraitravel", room.getsamuraitravel());
+		model.addAttribute("samuraitravel", room.getSamuraitravel());
 		model.addAttribute("booking", bookingDto);
 		model.addAttribute("nights", nights);
 		model.addAttribute("totalPrice", room.getPricePerNight().multiply(java.math.BigDecimal.valueOf(nights)));
@@ -81,7 +83,7 @@ public class BookingController {
 		if (result.hasErrors()) {
 			Room room = samuraitravelService.findRoomById(bookingDto.getRoomId());
 			model.addAttribute("room", room);
-			model.addAttribute("samuraitravel", room.getsamuraitravel());
+			model.addAttribute("samuraitravel", room.getSamuraitravel());
 			return "booking/form";
 		}
 

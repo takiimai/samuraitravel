@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.samuraitravel.dto.UserDto;
+import com.example.samuraitravel.model.Role;
+import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.repository.RoleRepository;
 import com.example.samuraitravel.repository.UserRepository;
 import com.example.samuraitravel.service.UserService;

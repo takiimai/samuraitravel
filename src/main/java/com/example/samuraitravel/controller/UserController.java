@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.example.samuraitravel.dto.UserDto;
+import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.service.UserService;
 
 @Controller

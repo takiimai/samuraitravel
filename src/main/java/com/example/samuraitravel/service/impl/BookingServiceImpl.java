@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.samuraitravel.dto.BookingDto;
 import com.example.samuraitravel.model.Booking;
 import com.example.samuraitravel.model.Room;
+import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.repository.BookingRepository;
 import com.example.samuraitravel.service.BookingService;
 import com.example.samuraitravel.service.UserService;

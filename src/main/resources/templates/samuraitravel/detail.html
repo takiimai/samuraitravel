@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('民宿詳細')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div th:if="${param.error}" class="alert alert-danger">
+			選択した日程では予約できません。別の日程を選択してください。
+		</div>
+
+		<!-- 民宿詳細 -->
+		<div class="row">
+			<div class="col-md-8">
+				<h1 th:text="${samuraitravel.name}">民宿名</h1>
+				<p class="mb-3">
+					<i class="fas fa-map-marker-alt"></i>
+					<span
+						th:text="${samuraitravel.prefecture} + ' ' + ${samuraitravel.city} + ' ' + ${samuraitravel.address}">住所</span>
+				</p>
+
+				<!-- 画像スライダー -->
+				<div id="samuraitravelCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+					<div class="carousel-inner rounded">
+						<div class="carousel-item active">
+							<img src="https://via.placeholder.com/800x500" class="d-block w-100" alt="民宿写真">
+						</div>
+						<div class="carousel-item">
+							<img src="https://via.placeholder.com/800x500" class="d-block w-100" alt="民宿写真">
+						</div>
+						<div class="carousel-item">
+							<img src="https://via.placeholder.com/800x500" class="d-block w-100" alt="民宿写真">
+						</div>
+					</div>
+					<button class="carousel-control-prev" type="button" data-bs-target="#samuraitravelCarousel"
+						data-bs-slide="prev">
+						<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+						<span class="visually-hidden">Previous</span>
+					</button>
+					<button class="carousel-control-next" type="button" data-bs-target="#samuraitravelCarousel"
+						data-bs-slide="next">
+						<span class="carousel-control-next-icon" aria-hidden="true"></span>
+						<span class="visually-hidden">Next</span>
+					</button>
+				</div>
+
+				<!-- 説明 -->
+				<div class="mb-4">
+					<h3>民宿について</h3>
+					<p th:text="${samuraitravel.description}">説明文...</p>
+				</div>
+
+				<!-- 連絡先 -->
+				<div class="mb-4">
+					<h3>連絡先情報</h3>
+					<ul class="list-unstyled">
+						<li th:if="${samuraitravel.phoneNumber}">
+							<i class="fas fa-phone me-2"></i> <span th:text="${samuraitravel.phoneNumber}">電話番号</span>
+						</li>
+						<li th:if="${samuraitravel.email}">
+							<i class="fas fa-envelope me-2"></i> <span th:text="${samuraitravel.email}">メールアドレス</span>
+						</li>
+						<li th:if="${samuraitravel.website}">
+							<i class="fas fa-globe me-2"></i>
+							<a th:href="${samuraitravel.website}" target="_blank"
+								th:text="${samuraitravel.website}">ウェブサイト</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- 予約フォーム -->
+			<div class="col-md-4">
+				<div class="card shadow sticky-top" style="top: 20px;">
+					<div class="card-body">
+						<h3 class="card-title">空室を検索</h3>
+						<form th:action="@{/samuraitravels/{id}/rooms(id=${samuraitravel.id})}" method="get">
+							<div class="mb-3">
+								<label for="checkInDate" class="form-label">チェックイン</label>
+								<input type="date" id="checkInDate" name="checkInDate" class="form-control" required>
+							</div>
+							<div class="mb-3">
+								<label for="checkOutDate" class="form-label">チェックアウト</label>
+								<input type="date" id="checkOutDate" name="checkOutDate" class="form-control" required>
+							</div>
+							<div class="mb-3">
+								<label for="guests" class="form-label">人数</label>
+								<select id="guests" name="guests" class="form-select" required>
+									<option value="1">1名</option>
+									<option value="2" selected>2名</option>
+									<option value="3">3名</option>
+									<option value="4">4名</option>
+									<option value="5">5名</option>
+								</select>
+							</div>
+							<div class="d-grid">
+								<button type="submit" class="btn btn-primary">空室を検索</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 部屋一覧 -->
+		<div class="mt-5">
+			<h2 class="mb-4">お部屋タイプ</h2>
+			<div class="row g-4">
+				<div class="col-md-6" th:each="room : ${rooms}">
+					<div class="card h-100">
+						<div class="row g-0">
+							<div class="col-md-4">
+								<img src="https://via.placeholder.com/300x200" class="img-fluid rounded-start h-100"
+									style="object-fit: cover;" alt="部屋写真">
+							</div>
+							<div class="col-md-8">
+								<div class="card-body">
+									<h5 class="card-title" th:text="${room.name}">部屋名</h5>
+									<p class="card-text text-muted">
+										<i class="fas fa-user"></i> 定員: <span th:text="${room.capacity}">2</span>名
+									</p>
+									<p class="card-text text-truncate" th:text="${room.description}">説明...</p>
+									<p class="card-text">
+										<span class="fw-bold text-primary"
+											th:text="${#numbers.formatInteger(room.pricePerNight, 1, 'COMMA')}">10,000</span>
+										円/泊
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+	<script>
+		// 日付バリデーション
+		document.addEventListener('DOMContentLoaded', function () {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const checkInDate = document.getElementById('checkInDate');
+			const checkOutDate = document.getElementById('checkOutDate');
+
+			// 最低でも翌日から選択可能に
+			const tomorrow = new Date(today);
+			tomorrow.setDate(tomorrow.getDate() + 1);
+
+			const formatDate = (date) => {
+				return date.toISOString().split('T')[0];
+			};
+
+			checkInDate.min = formatDate(tomorrow);
+
+			// チェックイン日が変更されたらチェックアウト日の最小値も変更
+			checkInDate.addEventListener('change', function () {
+				const selectedDate = new Date(this.value);
+				selectedDate.setDate(selectedDate.getDate() + 1);
+				checkOutDate.min = formatDate(selectedDate);
+
+				// チェックアウト日がチェックイン日より前なら、チェックアウト日を更新
+				if (new Date(checkOutDate.value) <= new Date(this.value)) {
+					checkOutDate.value = formatDate(selectedDate);
+				}
+			});
+		});
+	</script>
+</body>
+
+</html>
