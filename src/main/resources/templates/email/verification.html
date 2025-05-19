@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>メールアドレスの確認</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			line-height: 1.6;
+			color: #333;
+			max-width: 600px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		.container {
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			padding: 20px;
+		}
+
+		.btn {
+			display: inline-block;
+			padding: 10px 20px;
+			background-color: #4e73df;
+			color: white;
+			text-decoration: none;
+			border-radius: 5px;
+			margin: 20px 0;
+		}
+
+		.footer {
+			margin-top: 30px;
+			font-size: 12px;
+			color: #777;
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h2>民宿予約システム - メールアドレスの確認</h2>
+		<p>ご登録ありがとうございます。以下のリンクをクリックして、メールアドレスの確認を完了してください。</p>
+
+		<p>
+			<a th:href="${verificationUrl}" class="btn">メールアドレスを確認する</a>
+		</p>
+
+		<p>または、以下のURLをブラウザに貼り付けてアクセスしてください：</p>
+		<p th:text="${verificationUrl}">https://example.com/verify</p>
+
+		<p>このリンクは24時間有効です。期限が切れた場合は、ログインページから再送信の手続きを行ってください。</p>
+
+		<p>このメールに心当たりがない場合は、無視していただいて構いません。</p>
+	</div>
+
+	<div class="footer">
+		<p>&copy; 2023 民宿予約システム All Rights Reserved.</p>
+		<p>このメールはシステムより自動送信されています。返信はできませんのでご了承ください。</p>
+	</div>
+</body>
+
+</html>
+```
+
+### auth/registration-success.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('登録完了')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card shadow">
+					<div class="card-body p-5 text-center">
+						<i class="fas fa-envelope-open-text fa-5x text-primary mb-4"></i>
+						<h2 class="card-title">登録を受け付けました</h2>
+						<p class="lead">確認メールを送信しました。</p>
+						<p>登録いただいたメールアドレスに確認メールを送信しました。<br>メール内のリンクをクリックして、アカウントの有効化を完了してください。</p>
+						<p>メールが届かない場合は、迷惑メールフォルダをご確認いただくか、<a
+								th:href="@{/auth/resend-verification}">こちら</a>から再送信をお試しください。</p>
+
+						<div class="mt-4">
+							<a th:href="@{/}" class="btn btn-primary">トップページへ戻る</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>
+```
+
+### auth/token-expired.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('トークン期限切れ')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card shadow">
+					<div class="card-body p-5 text-center">
+						<i class="fas fa-clock fa-5x text-warning mb-4"></i>
+						<h2 class="card-title">トークンの有効期限が切れています</h2>
+						<p class="lead">メール確認用のリンクの有効期限が切れています。</p>
+						<p>新しい確認メールを送信するには、以下のボタンをクリックしてください。</p>
+
+						<div class="mt-4">
+							<a th:href="@{/auth/resend-verification}" class="btn btn-primary">確認メールを再送信</a>
+							<a th:href="@{/}" class="btn btn-outline-secondary ms-2">トップページへ戻る</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>

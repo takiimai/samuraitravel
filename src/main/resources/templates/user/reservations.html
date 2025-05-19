@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('予約履歴')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row">
+			<div class="col-md-3">
+				<div class="card mb-4">
+					<div class="card-body text-center">
+						<div class="mb-3">
+							<i class="fas fa-user-circle fa-5x text-primary"></i>
+						</div>
+						<h5 class="card-title" th:text="${#authentication.principal.username}">taro@example.com</h5>
+					</div>
+				</div>
+
+				<div class="list-group mb-4">
+					<a th:href="@{/user/profile}" class="list-group-item list-group-item-action">
+						<i class="fas fa-user me-2"></i> プロフィール
+					</a>
+					<a href="#" class="list-group-item list-group-item-action active">
+						<i class="fas fa-calendar-alt me-2"></i> 予約履歴
+					</a>
+				</div>
+			</div>
+
+			<div class="col-md-9">
+				<div class="card shadow">
+					<div class="card-body p-4">
+						<h2 class="card-title mb-4">予約履歴</h2>
+
+						<div th:if="${param.cancelled}" class="alert alert-success">
+							予約をキャンセルしました。
+						</div>
+
+						<div th:if="${#lists.isEmpty(reservations)}" class="text-center py-5">
+							<i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+							<h5>予約はありません</h5>
+							<p class="text-muted">民宿を予約して、素敵な旅行を計画しましょう！</p>
+							<a th:href="@{/houses}" class="btn btn-primary mt-2">民宿を探す</a>
+						</div>
+
+						<div th:unless="${#lists.isEmpty(reservations)}" class="table-responsive">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>予約番号</th>
+										<th>民宿</th>
+										<th>日程</th>
+										<th>人数</th>
+										<th>料金</th>
+										<th>状態</th>
+										<th>操作</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="reservation : ${reservations}">
+										<td th:text="${reservation.id}">12345</td>
+										<td th:text="${reservation.house.name}">SAMURAIの宿</td>
+										<td>
+											<span
+												th:text="${#temporals.format(reservation.checkInDate, 'MM/dd')}">01/01</span>
+											-
+											<span
+												th:text="${#temporals.format(reservation.checkOutDate, 'MM/dd')}">01/03</span>
+										</td>
+										<td th:text="${reservation.numberOfPeople} + '名'">2名</td>
+										<td th:text="${#numbers.formatInteger(reservation.amount, 1, 'COMMA')} + '円'">
+											20,000円</td>
+										<td>
+											<span class="badge"
+												th:classappend="${reservation.status == T(com.ryokan.model.Reservation.ReservationStatus).PENDING ? 'bg-warning' : 
+                                                                   (reservation.status == T(com.ryokan.model.Reservation.ReservationStatus).CONFIRMED ? 'bg-success' : 
+                                                                   (reservation.status == T(com.ryokan.model.Reservation.ReservationStatus).CANCELED ? 'bg-danger' : 'bg-secondary'))}"
+												th:text="${reservation.status}">
+												PENDING
+											</span>
+										</td>
+										<td>
+											<div class="dropdown"
+												th:if="${reservation.status != T(com.ryokan.model.Reservation.ReservationStatus).CANCELED}">
+												<button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+													type="button" data-bs-toggle="dropdown">
+													操作
+												</button>
+												<ul class="dropdown-menu">
+													<li>
+														<form
+															th:action="@{/reservations/{id}/cancel(id=${reservation.id})}"
+															method="post">
+															<button type="submit" class="dropdown-item text-danger"
+																onclick="return confirm('予約をキャンセルしますか？');">
+																キャンセル
+															</button>
+														</form>
+													</li>
+												</ul>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>

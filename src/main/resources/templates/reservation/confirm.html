@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('予約確認')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card shadow">
+					<div class="card-body p-4">
+						<div class="text-center mb-4">
+							<i class="fas fa-check-circle text-success fa-5x mb-3"></i>
+							<h2 class="card-title">予約が完了しました</h2>
+							<p>ご予約いただき、ありがとうございます。</p>
+						</div>
+
+						<div class="card mb-4">
+							<div class="card-body">
+								<h4 class="card-title">予約詳細</h4>
+								<div class="row">
+									<div class="col-md-6">
+										<p><strong>予約番号:</strong> <span th:text="${reservation.id}">12345</span></p>
+										<p><strong>予約日時:</strong> <span
+												th:text="${#temporals.format(reservation.reservationDate, 'yyyy年MM月dd日 HH:mm')}">2023年01月01日
+												12:34</span></p>
+										<p><strong>予約状況:</strong> <span class="badge bg-warning"
+												th:text="${reservation.status}">PENDING</span></p>
+									</div>
+									<div class="col-md-6">
+										<p><strong>お客様名:</strong> <span th:text="${reservation.user.name}">侍 太郎</span>
+										</p>
+										<p><strong>メールアドレス:</strong> <span
+												th:text="${reservation.user.email}">taro@example.com</span></p>
+										<p><strong>電話番号:</strong> <span
+												th:text="${reservation.user.phoneNumber}">090-1234-5678</span></p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="card mb-4">
+							<div class="card-body">
+								<div class="row">
+									<div class="col-md-8">
+										<h5 th:text="${reservation.house.name}">SAMURAIの宿</h5>
+										<p class="mb-1">
+											<i class="fas fa-map-marker-alt"></i> <span
+												th:text="${reservation.house.address}">住所</span>
+										</p>
+										<p class="mb-1">
+											<i class="fas fa-calendar"></i>
+											<span
+												th:text="${#temporals.format(reservation.checkInDate, 'yyyy年MM月dd日')}">チェックイン</span>
+											～
+											<span
+												th:text="${#temporals.format(reservation.checkOutDate, 'yyyy年MM月dd日')}">チェックアウト</span>
+											(<span
+												th:text="${#temporals.until(reservation.checkInDate, reservation.checkOutDate)}">2</span>泊)
+										</p>
+										<p class="mb-0">
+											<i class="fas fa-user"></i> <span
+												th:text="${reservation.numberOfPeople}">2</span>名様
+										</p>
+									</div>
+									<div class="col-md-4 text-end">
+										<h5 class="text-primary"
+											th:text="${#numbers.formatInteger(reservation.amount, 1, 'COMMA')} + '円'">
+											20,000円</h5>
+										<p class="mb-0 text-muted small">（税込）</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 特別リクエスト -->
+						<div class="card mb-4" th:if="${reservation.specialRequirements}">
+							<div class="card-body">
+								<h5 class="card-title">特別リクエスト</h5>
+								<p class="mb-0" th:text="${reservation.specialRequirements}">特別リクエストの内容...</p>
+							</div>
+						</div>
+
+						<div class="d-grid gap-2">
+							<a th:href="@{/reservations/my-reservations}" class="btn btn-primary">予約一覧へ</a>
+							<a th:href="@{/}" class="btn btn-outline-secondary">トップページへ戻る</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>

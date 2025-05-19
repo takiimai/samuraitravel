@@ -22,4 +22,9 @@ public interface UserService extends UserDetailsService {
     void deleteUser(Long id);
     
     boolean emailExists(String email);
+    
+    void createVerificationToken(User user);
+    String validateVerificationToken(String token);
+    void verifyUser(User user);
+
 }

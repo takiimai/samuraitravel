@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('空室確認')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<h1 class="mb-4">空室確認結果</h1>
+
+		<div class="row">
+			<div class="col-md-8">
+				<!-- 民宿情報 -->
+				<div class="card mb-4">
+					<div class="row g-0">
+						<div class="col-md-4">
+							<img th:src="@{'/images/houses/' + ${house.imageName ?: 'default_house.jpg'}}"
+								class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="民宿写真">
+						</div>
+						<div class="col-md-8">
+							<div class="card-body">
+								<h5 class="card-title" th:text="${house.name}">民宿名</h5>
+								<p class="card-text">
+									<i class="fas fa-map-marker-alt"></i> <span th:text="${house.address}">住所</span>
+								</p>
+								<p class="card-text text-truncate" th:text="${house.description}">説明...</p>
+								<p class="card-text">
+									<span class="fw-bold text-primary"
+										th:text="${#numbers.formatInteger(house.price, 1, 'COMMA')}">10,000</span> 円/泊
+									<span class="ms-3"><i class="fas fa-user"></i> 定員: <span
+											th:text="${house.capacity}">2</span>名</span>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 検索条件 -->
+				<div class="card mb-4">
+					<div class="card-body">
+						<h5 class="card-title">検索条件</h5>
+						<div class="row">
+							<div class="col-md-4">
+								<p><strong>チェックイン:</strong> <span
+										th:text="${#temporals.format(checkInDate, 'yyyy年MM月dd日')}">2023/01/01</span></p>
+							</div>
+							<div class="col-md-4">
+								<p><strong>チェックアウト:</strong> <span
+										th:text="${#temporals.format(checkOutDate, 'yyyy年MM月dd日')}">2023/01/03</span>
+								</p>
+							</div>
+							<div class="col-md-4">
+								<p><strong>宿泊人数:</strong> <span th:text="${numberOfPeople}">2</span>名</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 予約可能状況 -->
+				<div th:if="${isAvailable}" class="alert alert-success">
+					<h5><i class="fas fa-check-circle"></i> 予約可能です！</h5>
+					<p>指定された日程で予約が可能です。予約フォームから予約手続きを進めてください。</p>
+				</div>
+
+				<div th:unless="${isAvailable}" class="alert alert-danger">
+					<h5><i class="fas fa-times-circle"></i> 予約できません</h5>
+					<p>指定された日程では予約ができません。日程や人数を変更して再度お試しください。</p>
+
+					<a th:href="@{/houses/{id}(id=${house.id})}" class="btn btn-outline-primary mt-3">
+						<i class="fas fa-calendar-alt"></i> 別の日程で検索
+					</a>
+				</div>
+			</div>
+
+			<!-- 予約フォーム -->
+			<div class="col-md-4" th:if="${isAvailable}">
+				<div class="card shadow">
+					<div class="card-body">
+						<h3 class="card-title">予約手続き</h3>
+
+						<form th:action="@{/reservations/new}" method="get">
+							<input type="hidden" name="houseId" th:value="${house.id}">
+							<input type="hidden" name="checkInDate" th:value="${checkInDate}">
+							<input type="hidden" name="checkOutDate" th:value="${checkOutDate}">
+							<input type="hidden" name="numberOfPeople" th:value="${numberOfPeople}">
+
+							<!-- 宿泊料金計算 -->
+							<div class="mb-4">
+								<h5>料金詳細</h5>
+								<div class="d-flex justify-content-between">
+									<span
+										th:text="${#numbers.formatInteger(house.price, 1, 'COMMA')} + '円 × ' + ${#temporals.until(checkInDate, checkOutDate)} + '泊'">
+										10,000円 × 2泊
+									</span>
+									<span
+										th:text="${#numbers.formatInteger(house.price * #temporals.until(checkInDate, checkOutDate), 1, 'COMMA')} + '円'">
+										20,000円
+									</span>
+								</div>
+								<hr>
+								<div class="d-flex justify-content-between fw-bold">
+									<span>合計</span>
+									<span class="text-primary"
+										th:text="${#numbers.formatInteger(house.price * #temporals.until(checkInDate, checkOutDate), 1, 'COMMA')} + '円'">
+										20,000円
+									</span>
+								</div>
+							</div>
+
+							<div class="d-grid gap-2">
+								<button type="submit" class="btn btn-primary">予約手続きを進める</button>
+								<a th:href="@{/houses/{id}(id=${house.id})}" class="btn btn-outline-secondary">戻る</a>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>

@@ -28,33 +28,20 @@
 		<div class="container">
 			<h2 class="text-center mb-4">民宿を探す</h2>
 			<div class="search-form p-4 bg-white rounded shadow">
-				<form th:action="@{/search}" method="post" th:object="${searchDto}">
+				<form th:action="@{/search/availability}" method="get" th:object="${searchDto}">
 					<div class="row g-3">
-						<div class="col-md-3">
-							<label for="prefecture" class="form-label">都道府県</label>
-							<select id="prefecture" class="form-select" th:field="*{prefecture}">
-								<option value="">選択してください</option>
-								<option value="北海道">北海道</option>
-								<option value="青森県">青森県</option>
-								<!-- 他の都道府県 -->
-								<option value="東京都">東京都</option>
-								<option value="京都府">京都府</option>
-								<option value="大阪府">大阪府</option>
-								<!-- 他の都道府県 -->
-								<option value="沖縄県">沖縄県</option>
-							</select>
-						</div>
-						<div class="col-md-3">
+						<div class="col-md-4">
 							<label for="checkInDate" class="form-label">チェックイン</label>
-							<input type="date" id="checkInDate" class="form-control" th:field="*{checkInDate}">
+							<input type="date" id="checkInDate" class="form-control" th:field="*{checkInDate}" required>
+						</div>
+						<div class="col-md-4">
+							<label for="checkOutDate" class="form-label">チェックアウト</label>
+							<input type="date" id="checkOutDate" class="form-control" th:field="*{checkOutDate}"
+								required>
 						</div>
 						<div class="col-md-3">
-							<label for="checkOutDate" class="form-label">チェックアウト</label>
-							<input type="date" id="checkOutDate" class="form-control" th:field="*{checkOutDate}">
-						</div>
-						<div class="col-md-2">
-							<label for="guestCount" class="form-label">人数</label>
-							<select id="guestCount" class="form-select" th:field="*{guestCount}">
+							<label for="numberOfPeople" class="form-label">人数</label>
+							<select id="numberOfPeople" class="form-select" th:field="*{numberOfPeople}">
 								<option value="1">1名</option>
 								<option value="2">2名</option>
 								<option value="3">3名</option>
@@ -76,24 +63,30 @@
 		<div class="container">
 			<h2 class="text-center mb-4">おすすめ民宿</h2>
 			<div class="row g-4">
-				<div class="col-md-4" th:each="samuraitravel : ${samuraitravels}">
+				<div class="col-md-4" th:each="house : ${houses}">
 					<div class="card h-100">
-						<img src="https://via.placeholder.com/300x200" class="card-img-top" alt="民宿写真">
+						<img th:src="@{'/images/houses/' + ${house.imageName ?: 'default_house.jpg'}}"
+							class="card-img-top" alt="民宿写真" style="height: 200px; object-fit: cover;">
 						<div class="card-body">
-							<h5 class="card-title" th:text="${samuraitravel.name}">民宿名</h5>
+							<h5 class="card-title" th:text="${house.name}">民宿名</h5>
 							<p class="card-text">
 								<i class="fas fa-map-marker-alt"></i>
-								<span th:text="${samuraitravel.prefecture} + ' ' + ${samuraitravel.city}">場所</span>
+								<span th:text="${house.address}">場所</span>
 							</p>
-							<p class="card-text text-truncate" th:text="${samuraitravel.description}">説明...</p>
-							<a th:href="@{/samuraitravels/{id}(id=${samuraitravel.id})}"
-								class="btn btn-outline-primary">詳細を見る</a>
+							<p class="card-text">
+								<span class="fw-bold text-primary"
+									th:text="${#numbers.formatInteger(house.price, 1, 'COMMA')}">10,000</span> 円/泊
+								<span class="ms-2"><i class="fas fa-user"></i> <span
+										th:text="${house.capacity}">2</span>名</span>
+							</p>
+							<p class="card-text text-truncate" th:text="${house.description}">説明...</p>
+							<a th:href="@{/houses/{id}(id=${house.id})}" class="btn btn-outline-primary">詳細を見る</a>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="text-center mt-4">
-				<a th:href="@{/samuraitravels}" class="btn btn-outline-primary">もっと見る</a>
+				<a th:href="@{/houses}" class="btn btn-outline-primary">もっと見る</a>
 			</div>
 		</div>
 	</div>
@@ -136,6 +129,52 @@
 
 	<footer th:replace="~{fragments/layout :: footer}"></footer>
 	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+	<script>
+		// 日付バリデーション
+		document.addEventListener('DOMContentLoaded', function () {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const checkInDate = document.getElementById('checkInDate');
+			const checkOutDate = document.getElementById('checkOutDate');
+
+			// 最低でも翌日から選択可能に
+			const tomorrow = new Date(today);
+			tomorrow.setDate(tomorrow.getDate() + 1);
+
+			const formatDate = (date) => {
+				return date.toISOString().split('T')[0];
+			};
+
+			if (checkInDate.value === '') {
+				checkInDate.value = formatDate(tomorrow);
+			}
+
+			checkInDate.min = formatDate(tomorrow);
+
+			// チェックイン日が変更されたらチェックアウト日の最小値も変更
+			checkInDate.addEventListener('change', function () {
+				const selectedDate = new Date(this.value);
+				selectedDate.setDate(selectedDate.getDate() + 1);
+				checkOutDate.min = formatDate(selectedDate);
+
+				// チェックアウト日がチェックイン日より前なら、チェックアウト日を更新
+				if (checkOutDate.value === '' || new Date(checkOutDate.value) <= new Date(this.value)) {
+					checkOutDate.value = formatDate(selectedDate);
+				}
+			});
+
+			// 初期状態でもチェックアウト日の最小値を設定
+			const checkInValue = new Date(checkInDate.value);
+			checkInValue.setDate(checkInValue.getDate() + 1);
+			checkOutDate.min = formatDate(checkInValue);
+
+			if (checkOutDate.value === '') {
+				checkOutDate.value = formatDate(checkInValue);
+			}
+		});
+	</script>
 </body>
 
 </html>

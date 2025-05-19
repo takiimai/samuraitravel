@@ -6,8 +6,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,225 +15,180 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.samuraitravel.dto.samuraitravelDto;
-import com.example.samuraitravel.model.Booking;
-import com.example.samuraitravel.model.Room;
+import com.example.samuraitravel.dto.HouseDto;
+import com.example.samuraitravel.dto.UserDto;
+import com.example.samuraitravel.model.House;
+import com.example.samuraitravel.model.Reservation;
 import com.example.samuraitravel.model.User;
-import com.example.samuraitravel.model.samuraitravel;
-import com.example.samuraitravel.service.BookingService;
+import com.example.samuraitravel.service.HouseService;
+import com.example.samuraitravel.service.ReservationService;
 import com.example.samuraitravel.service.UserService;
-import com.example.samuraitravel.service.samuraitravelService;
 
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
-	private final samuraitravelService samuraitravelService;
-	private final BookingService bookingService;
+	private final HouseService houseService;
+	private final ReservationService reservationService;
 	private final UserService userService;
 
 	@Autowired
 	public AdminController(
-			samuraitravelService samuraitravelService,
-			BookingService bookingService,
+			HouseService houseService,
+			ReservationService reservationService,
 			UserService userService) {
-		this.samuraitravelService = samuraitravelService;
-		this.bookingService = bookingService;
+		this.houseService = houseService;
+		this.reservationService = reservationService;
 		this.userService = userService;
 	}
 
 	@GetMapping
 	public String dashboard(Model model) {
-		List<samuraitravel> samuraitravels = samuraitravelService.findAllsamuraitravels();
-		List<Booking> recentBookings = bookingService.findAllBookings();
+		List<House> houses = houseService.findAllHouses();
+		List<Reservation> reservations = reservationService.findAll();
 		List<User> users = userService.findAllUsers();
 
-		model.addAttribute("samuraitravelCount", samuraitravels.size());
-		model.addAttribute("bookingCount", recentBookings.size());
+		model.addAttribute("houseCount", houses.size());
+		model.addAttribute("reservationCount", reservations.size());
 		model.addAttribute("userCount", users.size());
-		model.addAttribute("recentBookings", recentBookings);
+		model.addAttribute("recentReservations", reservations);
 
 		return "admin/dashboard";
 	}
 
-	@GetMapping("/samuraitravels")
-	public String listsamuraitravels(Model model) {
-		List<samuraitravel> samuraitravels = samuraitravelService.findAllsamuraitravels();
-		model.addAttribute("samuraitravels", samuraitravels);
-		return "admin/samuraitravels";
+	// 民宿管理
+	@GetMapping("/houses")
+	public String listHouses(Model model) {
+		List<House> houses = houseService.findAllHouses();
+		model.addAttribute("houses", houses);
+		return "admin/houses";
 	}
 
-	@GetMapping("/samuraitravels/new")
-	public String newsamuraitravelForm(Model model) {
-		model.addAttribute("samuraitravel", new samuraitravelDto());
-		return "admin/samuraitravel-form";
+	@GetMapping("/houses/new")
+	public String newHouseForm(Model model) {
+		model.addAttribute("house", new HouseDto());
+		return "admin/house-form";
 	}
 
-	@PostMapping("/samuraitravels/new")
-	public String createsamuraitravel(
-			@Valid @ModelAttribute("samuraitravel") samuraitravelDto samuraitravelDto,
-			BindingResult result,
-			@AuthenticationPrincipal UserDetails currentUser) {
-
-		if (result.hasErrors()) {
-			return "admin/samuraitravel-form";
-		}
-
-		User user = (User) currentUser;
-		samuraitravelService.createsamuraitravel(samuraitravelDto, user.getId());
-
-		return "redirect:/admin/samuraitravels";
-	}
-
-	@GetMapping("/samuraitravels/edit/{id}")
-	public String editsamuraitravelForm(@PathVariable Long id, Model model) {
-		samuraitravel samuraitravel = samuraitravelService.findById(id);
-
-		samuraitravelDto samuraitravelDto = new samuraitravelDto();
-		samuraitravelDto.setId(samuraitravel.getId());
-		samuraitravelDto.setName(samuraitravel.getName());
-		samuraitravelDto.setDescription(samuraitravel.getDescription());
-		samuraitravelDto.setAddress(samuraitravel.getAddress());
-		samuraitravelDto.setCity(samuraitravel.getCity());
-		samuraitravelDto.setPrefecture(samuraitravel.getPrefecture());
-		samuraitravelDto.setPostalCode(samuraitravel.getPostalCode());
-		samuraitravelDto.setPhoneNumber(samuraitravel.getPhoneNumber());
-		samuraitravelDto.setEmail(samuraitravel.getEmail());
-		samuraitravelDto.setWebsite(samuraitravel.getWebsite());
-		samuraitravelDto.setActive(samuraitravel.isActive());
-
-		model.addAttribute("samuraitravel", samuraitravelDto);
-		return "admin/samuraitravel-form";
-	}
-
-	@PostMapping("/samuraitravels/edit/{id}")
-	public String updatesamuraitravel(
-			@PathVariable Long id,
-			@Valid @ModelAttribute("samuraitravel") samuraitravelDto samuraitravelDto,
+	@PostMapping("/houses/new")
+	public String createHouse(
+			@Valid @ModelAttribute("house") HouseDto houseDto,
 			BindingResult result) {
 
 		if (result.hasErrors()) {
-			return "admin/samuraitravel-form";
+			return "admin/house-form";
 		}
 
-		samuraitravelDto.setId(id);
-		samuraitravelService.updatesamuraitravel(samuraitravelDto);
-
-		return "redirect:/admin/samuraitravels";
+		houseService.createHouse(houseDto);
+		return "redirect:/admin/houses";
 	}
 
-	@PostMapping("/samuraitravels/delete/{id}")
-	public String deletesamuraitravel(@PathVariable Long id) {
-		samuraitravelService.deletesamuraitravel(id);
-		return "redirect:/admin/samuraitravels";
+	@GetMapping("/houses/edit/{id}")
+	public String editHouseForm(@PathVariable Long id, Model model) {
+		House house = houseService.findById(id);
+
+		HouseDto houseDto = new HouseDto();
+		houseDto.setId(house.getId());
+		houseDto.setName(house.getName());
+		houseDto.setDescription(house.getDescription());
+		houseDto.setPrice(house.getPrice());
+		houseDto.setCapacity(house.getCapacity());
+		houseDto.setPostalCode(house.getPostalCode());
+		houseDto.setAddress(house.getAddress());
+		houseDto.setPhoneNumber(house.getPhoneNumber());
+		houseDto.setImageName(house.getImageName());
+
+		model.addAttribute("house", houseDto);
+		return "admin/house-form";
 	}
 
-	@GetMapping("/bookings")
-	public String listBookings(Model model) {
-		List<Booking> bookings = bookingService.findAllBookings();
-		model.addAttribute("bookings", bookings);
-		return "admin/bookings";
-	}
-
-	@PostMapping("/bookings/{id}/status")
-	public String updateBookingStatus(
+	@PostMapping("/houses/edit/{id}")
+	public String updateHouse(
 			@PathVariable Long id,
-			@RequestParam Booking.BookingStatus status) {
-
-		bookingService.updateBookingStatus(id, status);
-		return "redirect:/admin/bookings";
-	}
-
-	@GetMapping("/rooms/{samuraitravelId}")
-	public String listRooms(@PathVariable Long samuraitravelId, Model model) {
-		samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-		List<Room> rooms = samuraitravelService.findRoomsBysamuraitravelId(samuraitravelId);
-
-		model.addAttribute("samuraitravel", samuraitravel);
-		model.addAttribute("rooms", rooms);
-
-		return "admin/rooms";
-	}
-
-	@GetMapping("/rooms/{samuraitravelId}/new")
-	public String newRoomForm(@PathVariable Long samuraitravelId, Model model) {
-		samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-		Room room = new Room();
-		room.setSamuraitravel(samuraitravel);
-
-		model.addAttribute("room", room);
-		model.addAttribute("samuraitravel", samuraitravel);
-
-		return "admin/room-form";
-	}
-
-	@PostMapping("/rooms/{samuraitravelId}/new")
-	public String createRoom(
-			@PathVariable Long samuraitravelId,
-			@Valid @ModelAttribute("room") Room room,
-			BindingResult result,
-			Model model) {
+			@Valid @ModelAttribute("house") HouseDto houseDto,
+			BindingResult result) {
 
 		if (result.hasErrors()) {
-			samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-			model.addAttribute("samuraitravel", samuraitravel);
-			return "admin/room-form";
+			return "admin/house-form";
 		}
 
-		samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-		room.setSamuraitravel(samuraitravel);
+		houseDto.setId(id);
+		houseService.updateHouse(houseDto);
 
-		samuraitravelService.createRoom(room);
-
-		return "redirect:/admin/rooms/" + samuraitravelId;
+		return "redirect:/admin/houses";
 	}
 
-	@GetMapping("/rooms/{samuraitravelId}/edit/{id}")
-	public String editRoomForm(
-			@PathVariable Long samuraitravelId,
-			@PathVariable Long id,
-			Model model) {
-
-		samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-		Room room = samuraitravelService.findRoomById(id);
-
-		model.addAttribute("room", room);
-		model.addAttribute("samuraitravel", samuraitravel);
-
-		return "admin/room-form";
+	@PostMapping("/houses/delete/{id}")
+	public String deleteHouse(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			houseService.deleteHouse(id);
+			redirectAttributes.addFlashAttribute("success", "民宿を削除しました");
+		} catch (Exception e) {
+			redirectAttributes.addFlashAttribute("error", "民宿の削除に失敗しました: " + e.getMessage());
+		}
+		return "redirect:/admin/houses";
 	}
 
-	@PostMapping("/rooms/{samuraitravelId}/edit/{id}")
-	public String updateRoom(
-			@PathVariable Long samuraitravelId,
+	// 予約管理
+	@GetMapping("/reservations")
+	public String listReservations(Model model) {
+		List<Reservation> reservations = reservationService.findAll();
+		model.addAttribute("reservations", reservations);
+		return "admin/reservations";
+	}
+
+	@PostMapping("/reservations/{id}/status")
+	public String updateReservationStatus(
 			@PathVariable Long id,
-			@Valid @ModelAttribute("room") Room room,
-			BindingResult result,
-			Model model) {
+			@RequestParam Reservation.ReservationStatus status) {
+
+		reservationService.updateStatus(id, status);
+		return "redirect:/admin/reservations";
+	}
+
+	// ユーザー管理
+	@GetMapping("/users")
+	public String listUsers(Model model) {
+		List<User> users = userService.findAllUsers();
+		model.addAttribute("users", users);
+		return "admin/users";
+	}
+
+	@GetMapping("/users/edit/{id}")
+	public String editUserForm(@PathVariable Long id, Model model) {
+		User user = userService.findById(id);
+
+		UserDto userDto = new UserDto();
+		userDto.setId(user.getId());
+		userDto.setName(user.getName());
+		userDto.setFurigana(user.getFurigana());
+		userDto.setEmail(user.getEmail());
+		userDto.setPostalCode(user.getPostalCode());
+		userDto.setAddress(user.getAddress());
+		userDto.setPhoneNumber(user.getPhoneNumber());
+		userDto.setRoleId(user.getRole().getId());
+		userDto.setEnabled(user.isEnabled());
+
+		model.addAttribute("user", userDto);
+		return "admin/user-form";
+	}
+
+	@PostMapping("/users/edit/{id}")
+	public String updateUser(
+			@PathVariable Long id,
+			@Valid @ModelAttribute("user") UserDto userDto,
+			BindingResult result) {
 
 		if (result.hasErrors()) {
-			samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-			model.addAttribute("samuraitravel", samuraitravel);
-			return "admin/room-form";
+			return "admin/user-form";
 		}
 
-		room.setId(id);
-		samuraitravel samuraitravel = samuraitravelService.findById(samuraitravelId);
-		room.setSamuraitravel(samuraitravel);
+		userDto.setId(id);
+		userService.updateUser(userDto);
 
-		samuraitravelService.updateRoom(room);
-
-		return "redirect:/admin/rooms/" + samuraitravelId;
-	}
-
-	@PostMapping("/rooms/{samuraitravelId}/delete/{id}")
-	public String deleteRoom(
-			@PathVariable Long samuraitravelId,
-			@PathVariable Long id) {
-
-		samuraitravelService.deleteRoom(id);
-		return "redirect:/admin/rooms/" + samuraitravelId;
+		return "redirect:/admin/users";
 	}
 }

@@ -21,40 +21,44 @@ import com.example.samuraitravel.service.UserService;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
+	private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+	@Autowired
+	public UserController(UserService userService) {
+		this.userService = userService;
+	}
 
-    @GetMapping("/profile")
-    public String showProfile(@AuthenticationPrincipal UserDetails currentUser, Model model) {
-        User user = (User) currentUser;
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setEmail(user.getEmail());
-        userDto.setName(user.getName());
-        userDto.setPhoneNumber(user.getPhoneNumber());
-        
-        model.addAttribute("user", userDto);
-        return "user/profile";
-    }
+	@GetMapping("/profile")
+	public String showProfile(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+		User user = userService.findByEmail(userDetails.getUsername());
 
-    @PostMapping("/profile")
-    public String updateProfile(
-            @Valid @ModelAttribute("user") UserDto userDto,
-            BindingResult result,
-            @AuthenticationPrincipal UserDetails currentUser) {
-        
-        if (result.hasErrors()) {
-            return "user/profile";
-        }
-        
-        User user = (User) currentUser;
-        userDto.setId(user.getId());
-        
-        userService.updateUser(userDto);
-        return "redirect:/user/profile?success";
-    }
+		UserDto userDto = new UserDto();
+		userDto.setId(user.getId());
+		userDto.setName(user.getName());
+		userDto.setFurigana(user.getFurigana());
+		userDto.setEmail(user.getEmail());
+		userDto.setPostalCode(user.getPostalCode());
+		userDto.setAddress(user.getAddress());
+		userDto.setPhoneNumber(user.getPhoneNumber());
+
+		model.addAttribute("user", userDto);
+		return "user/profile";
+	}
+
+	@PostMapping("/profile")
+	public String updateProfile(
+			@Valid @ModelAttribute("user") UserDto userDto,
+			BindingResult result,
+			@AuthenticationPrincipal UserDetails userDetails) {
+
+		if (result.hasErrors()) {
+			return "user/profile";
+		}
+
+		User user = userService.findByEmail(userDetails.getUsername());
+		userDto.setId(user.getId());
+
+		userService.updateUser(userDto);
+		return "redirect:/user/profile?success";
+	}
 }

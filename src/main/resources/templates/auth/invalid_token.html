@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('無効なトークン')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card shadow">
+					<div class="card-body p-5 text-center">
+						<i class="fas fa-exclamation-triangle fa-5x text-danger mb-4"></i>
+						<h2 class="card-title">無効なトークンです</h2>
+						<p class="lead">メール確認用のリンクが無効です。</p>
+						<p>新しい確認メールを送信するには、以下のボタンをクリックしてください。</p>
+
+						<div class="mt-4">
+							<a th:href="@{/auth/resend-verification}" class="btn btn-primary">確認メールを再送信</a>
+							<a th:href="@{/}" class="btn btn-outline-secondary ms-2">トップページへ戻る</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>
+```
+
+### auth/resend-verification.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('確認メールの再送信')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card shadow">
+					<div class="card-body p-5">
+						<h2 class="card-title text-center mb-4">確認メールの再送信</h2>
+
+						<div th:if="${error}" class="alert alert-danger" th:text="${error}">
+							エラーメッセージ
+						</div>
+
+						<p class="mb-4">登録時に使用したメールアドレスを入力してください。新しい確認メールを送信します。</p>
+
+						<form th:action="@{/auth/resend-verification}" method="post">
+							<div class="mb-3">
+								<label for="email" class="form-label">メールアドレス</label>
+								<input type="email" id="email" name="email" class="form-control" required>
+							</div>
+
+							<div class="d-grid gap-2">
+								<button type="submit" class="btn btn-primary">送信</button>
+								<a th:href="@{/auth/login}" class="btn btn-outline-secondary">ログインページに戻る</a>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>
