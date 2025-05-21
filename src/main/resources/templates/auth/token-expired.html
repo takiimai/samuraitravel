@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('トークン期限切れ')}">
+</head>
+
+<body>
+	<header th:replace="~{fragments/layout :: header}"></header>
+
+	<div class="container py-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="card shadow">
+					<div class="card-body p-5 text-center">
+						<i class="fas fa-clock fa-5x text-warning mb-4"></i>
+						<h2 class="card-title">トークンの有効期限が切れています</h2>
+						<p class="lead">メール確認用のリンクの有効期限が切れています。</p>
+						<p>新しい確認メールを送信するには、以下のボタンをクリックしてください。</p>
+
+						<div class="mt-4">
+							<a th:href="@{/auth/resend-verification}" class="btn btn-primary">確認メールを再送信</a>
+							<a th:href="@{/}" class="btn btn-outline-secondary ms-2">トップページへ戻る</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer th:replace="~{fragments/layout :: footer}"></footer>
+	<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+
+</html>

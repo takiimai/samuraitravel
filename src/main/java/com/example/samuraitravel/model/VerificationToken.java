@@ -35,16 +35,20 @@ public class VerificationToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private LocalDateTime expiryDate;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public VerificationToken(User user) {
         this.user = user;
         this.token = UUID.randomUUID().toString();
-        this.expiryDate = LocalDateTime.now().plusHours(EXPIRATION_HOURS);
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiryDate);
+        return LocalDateTime.now().isAfter(createdAt.plusHours(EXPIRATION_HOURS));
     }
 }

@@ -14,29 +14,31 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				.authorizeHttpRequests((requests) -> requests
-						.requestMatchers("/", "/houses/**", "/search/**", "/auth/**", "/css/**", "/js/**", "/images/**")
-						.permitAll()
-						.requestMatchers("/admin/**").hasRole("ADMIN")
-						.anyRequest().authenticated())
-				.formLogin((form) -> form
-						.loginPage("/auth/login")
-						.loginProcessingUrl("/auth/login")
-						.defaultSuccessUrl("/")
-						.permitAll())
-				.logout((logout) -> logout
-						.logoutUrl("/auth/logout")
-						.logoutSuccessUrl("/")
-						.permitAll());
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests((requests) -> requests
+                .requestMatchers("/", "/houses/**", "/search/**", "/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin((form) -> form
+                .loginPage("/auth/login")
+                .loginProcessingUrl("/auth/login")
+                .defaultSuccessUrl("/")
+                .permitAll()
+            )
+            .logout((logout) -> logout
+                .logoutUrl("/auth/logout")
+                .logoutSuccessUrl("/")
+                .permitAll()
+            );
+        
+        return http.build();
+    }
 
-		return http.build();
-	}
-
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }

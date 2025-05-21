@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import com.example.samuraitravel.service.UserService;
 
 @Service
 public class ReservationServiceImpl implements ReservationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReservationServiceImpl.class);
 
     private final ReservationRepository reservationRepository;
     private final UserService userService;
@@ -83,7 +87,11 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setSpecialRequirements(reservationDto.getSpecialRequirements());
         reservation.setStatus(ReservationStatus.PENDING);
         
-        return reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        logger.info("予約を作成しました：ID={}, ユーザー={}, 民宿={}, チェックイン={}", 
+                savedReservation.getId(), user.getEmail(), house.getName(), checkInDate);
+        
+        return savedReservation;
     }
 
     @Override
@@ -117,6 +125,7 @@ public class ReservationServiceImpl implements ReservationService {
     public Reservation updateStatus(Long id, ReservationStatus status) {
         Reservation reservation = findById(id);
         reservation.setStatus(status);
+        logger.info("予約ステータスを更新しました：ID={}, 新ステータス={}", id, status);
         return reservationRepository.save(reservation);
     }
 
@@ -126,5 +135,6 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = findById(id);
         reservation.setStatus(ReservationStatus.CANCELED);
         reservationRepository.save(reservation);
+        logger.info("予約をキャンセルしました：ID={}", id);
     }
 }

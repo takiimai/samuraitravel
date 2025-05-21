@@ -2,6 +2,8 @@ package com.example.samuraitravel.controller;
 
 import jakarta.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,12 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.samuraitravel.dto.UserDto;
-import com.example.samuraitravel.model.User;
 import com.example.samuraitravel.service.UserService;
 
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final UserService userService;
 
@@ -38,17 +41,28 @@ public class AuthController {
     public String registerUser(@Valid @ModelAttribute("user") UserDto userDto,
                                BindingResult result,
                                Model model) {
+        logger.info("ユーザー登録リクエスト: {}", userDto.getEmail());
+        
         if (result.hasErrors()) {
+            logger.warn("登録フォームのバリデーションエラー: {}", result.getAllErrors());
             return "auth/register";
         }
 
         if (userService.emailExists(userDto.getEmail())) {
             result.rejectValue("email", "error.user", "このメールアドレスは既に使用されています。");
+            logger.warn("メールアドレス重複: {}", userDto.getEmail());
             return "auth/register";
         }
 
-        userService.registerUser(userDto);
-        return "redirect:/auth/registration-success";
+        try {
+            userService.registerUser(userDto);
+            logger.info("ユーザー登録成功: {}", userDto.getEmail());
+            return "redirect:/auth/registration-success";
+        } catch (Exception e) {
+            logger.error("ユーザー登録エラー: {}", e.getMessage(), e);
+            model.addAttribute("error", "登録処理中にエラーが発生しました。");
+            return "auth/register";
+        }
     }
     
     @GetMapping("/registration-success")
@@ -58,16 +72,21 @@ public class AuthController {
     
     @GetMapping("/verify-email")
     public String verifyEmail(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
+        logger.info("メール検証リクエスト: token={}", token);
+        
         String result = userService.validateVerificationToken(token);
         
         if (result.equals("valid")) {
             redirectAttributes.addFlashAttribute("message", "メールアドレスが確認されました。ログインしてください。");
+            logger.info("メール検証成功: token={}", token);
             return "redirect:/auth/login?verified";
         } else if (result.equals("expired")) {
             redirectAttributes.addFlashAttribute("error", "トークンの有効期限が切れています。再度登録してください。");
+            logger.warn("トークン期限切れ: token={}", token);
             return "redirect:/auth/token-expired";
         } else {
             redirectAttributes.addFlashAttribute("error", "無効なトークンです。");
+            logger.warn("無効なトークン: token={}", token);
             return "redirect:/auth/invalid-token";
         }
     }
@@ -89,19 +108,16 @@ public class AuthController {
     
     @PostMapping("/resend-verification")
     public String resendVerification(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        logger.info("検証メール再送リクエスト: {}", email);
+        
         try {
-            User user = userService.findByEmail(email);
-            
-            if (!user.isEnabled()) {
-                userService.createVerificationToken(user);
-                redirectAttributes.addFlashAttribute("message", "確認メールを再送信しました。");
-            } else {
-                redirectAttributes.addFlashAttribute("message", "このアカウントは既に有効化されています。");
-            }
-            
+            userService.resendVerificationToken(email);
+            redirectAttributes.addFlashAttribute("message", "確認メールを再送信しました。");
+            logger.info("検証メール再送成功: {}", email);
             return "redirect:/auth/login";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "メールアドレスが見つかりません。");
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            logger.error("検証メール再送失敗: {}", e.getMessage(), e);
             return "redirect:/auth/resend-verification";
         }
     }

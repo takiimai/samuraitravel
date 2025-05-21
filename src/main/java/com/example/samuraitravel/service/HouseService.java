@@ -3,13 +3,10 @@ package com.example.samuraitravel.service;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import com.example.samuraitravel.dto.HouseDto;
 import com.example.samuraitravel.dto.SearchDto;
 import com.example.samuraitravel.model.House;
 
-@Service
 public interface HouseService {
     
     List<House> findAllHouses();

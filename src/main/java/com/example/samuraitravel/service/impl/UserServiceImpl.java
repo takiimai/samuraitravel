@@ -5,6 +5,8 @@ import java.util.List;
 
 import jakarta.mail.MessagingException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +27,8 @@ import com.example.samuraitravel.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -89,7 +93,12 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         
         // 確認トークンを作成してメール送信
-        createVerificationToken(savedUser);
+        try {
+            createVerificationToken(savedUser);
+            logger.info("確認トークン作成・メール送信成功: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            logger.error("確認トークン作成・メール送信失敗: {}", e.getMessage(), e);
+        }
         
         return savedUser;
     }
@@ -97,18 +106,35 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createVerificationToken(User user) {
-        // 既存のトークンがあれば削除
-        verificationTokenRepository.findByUser(user).ifPresent(verificationTokenRepository::delete);
-        
-        // 新しいトークンを作成
-        VerificationToken token = new VerificationToken(user);
-        verificationTokenRepository.save(token);
-        
-        // 確認メールを送信
         try {
-            emailService.sendVerificationEmail(user.getEmail(), token.getToken());
-        } catch (MessagingException e) {
-            throw new RuntimeException("確認メールの送信に失敗しました", e);
+            logger.info("トークン作成開始 - User ID: {}", user.getId());
+            
+            // 既存のトークンがあれば削除
+            verificationTokenRepository.findByUser(user).ifPresent(token -> {
+                logger.info("既存トークン発見: {}", token.getToken());
+                verificationTokenRepository.delete(token);
+            });
+            
+            // 新しいトークンを作成
+            logger.info("新規トークン作成...");
+            VerificationToken token = new VerificationToken(user);
+            logger.info("作成済トークン: {}", token.getToken());
+            
+            // トークンを保存
+            verificationTokenRepository.save(token);
+            logger.info("トークン保存成功");
+            
+            // 確認メールを送信
+            try {
+                emailService.sendVerificationEmail(user.getEmail(), token.getToken());
+                logger.info("確認メール送信成功");
+            } catch (MessagingException e) {
+                logger.error("確認メール送信失敗: {}", e.getMessage(), e);
+                throw new RuntimeException("確認メールの送信に失敗しました", e);
+            }
+        } catch (Exception e) {
+            logger.error("エラータイプ: {} - エラーメッセージ: {}", e.getClass().getName(), e.getMessage(), e);
+            throw e;
         }
     }
     
@@ -118,10 +144,12 @@ public class UserServiceImpl implements UserService {
                 .orElse(null);
         
         if (verificationToken == null) {
+            logger.warn("トークンが見つかりません: {}", token);
             return "invalid";
         }
         
         if (verificationToken.isExpired()) {
+            logger.warn("トークンの有効期限切れ: {}", token);
             verificationTokenRepository.delete(verificationToken);
             return "expired";
         }
@@ -129,6 +157,7 @@ public class UserServiceImpl implements UserService {
         User user = verificationToken.getUser();
         verifyUser(user);
         verificationTokenRepository.delete(verificationToken);
+        logger.info("トークン検証成功: {}", token);
         
         return "valid";
     }
@@ -138,6 +167,7 @@ public class UserServiceImpl implements UserService {
     public void verifyUser(User user) {
         user.setEnabled(true);
         userRepository.save(user);
+        logger.info("ユーザーを有効化しました: {}", user.getEmail());
     }
 
     @Override
@@ -204,5 +234,23 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(email);
     }
     
-    
+    @Override
+    @Transactional
+    public void resendVerificationToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("ユーザーが見つかりません: " + email));
+        
+        if (user.isEnabled()) {
+            logger.info("ユーザーは既に有効化されています: {}", email);
+            throw new RuntimeException("このアカウントは既に有効化されています");
+        }
+        
+        try {
+            createVerificationToken(user);
+            logger.info("確認トークンを再送信しました: {}", email);
+        } catch (Exception e) {
+            logger.error("確認トークン再送信失敗: {}", e.getMessage(), e);
+            throw new RuntimeException("確認メールの再送信に失敗しました", e);
+        }
+    }
 }

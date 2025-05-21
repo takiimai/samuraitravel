@@ -24,7 +24,10 @@ public interface UserService extends UserDetailsService {
     boolean emailExists(String email);
     
     void createVerificationToken(User user);
+    
     String validateVerificationToken(String token);
+    
     void verifyUser(User user);
-
+    
+    void resendVerificationToken(String email);
 }
